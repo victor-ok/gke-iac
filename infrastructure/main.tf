@@ -1,53 +1,67 @@
-module "vpc" {
-    source  = "./vn"
+module "network" {
+  source                  = "./module/network"
+  network_name            = var.network_name
+  routing_mode            = var.routing_mode
+  mtu                     = var.mtu
+  auto_create_subnetworks = var.auto_create_subnetworks
+  ip_cidr_range           = var.ip_cidr_range
+  region                  = var.region
+  project_id              = var.project_id
 
-    project_id   = var.project_id
-    network_name = var.network_name
-
-    shared_vpc_host = false
+  zone           = var.zone
+  cluster_name   = var.cluster_name
+  node_pool_name = var.node_pool_name
 }
 
-module "subnet" {
-  source = "./subnets"
-  project_id   = var.project_id
-  network_name = var.network_name
-  subnets = [
-        {
-            subnet_name           = var.subnet_name["subnet-01"]
-            subnet_ip             = var.subnet_ip["subnet-ip-01"]
-            subnet_region         = var.subnet_region
-        },
-        {
-            subnet_name           = var.subnet_name["subnet-02"]
-            subnet_ip             = var.subnet_ip["subnet-ip-02"]
-            subnet_region         = var.subnet_region
-            subnet_private_access = "true"
-            subnet_flow_logs      = "true"
-            description           = "This subnet has a description"
-            # purpose               = "INTERNAL_HTTPS_LOAD_BALANCER"
-            role                  = "ACTIVE"
-        },
-        {
-            subnet_name                  = var.subnet_name["subnet-03"]
-            subnet_ip                    = var.subnet_ip["subnet-ip-03"]
-            subnet_region                = var.subnet_region
-            subnet_flow_logs             = "true"
-            subnet_flow_logs_interval    = "INTERVAL_10_MIN"
-            subnet_flow_logs_sampling    = 0.7
-            subnet_flow_logs_metadata    = "INCLUDE_ALL_METADATA"
-            subnet_flow_logs_filter_expr = "true"
-        }
-    ]
-
-    secondary_ranges = {
-        subnet-01 = [
-            {
-                range_name    = "subnet-01-secondary-01"
-                ip_cidr_range = var.ip_cidr_range
-            },
-        ]
-
-        subnet-02 = []
-    }
-  depends_on = [ module.vpc ]
+module "kubernetes" {
+  source     = "./module/kubernetes"
+  namespace  = "dev"
+  depends_on = [module.network]
 }
+
+# module "storage" {
+#   source         = "./module/storage"
+#   serviceAccount = var.serviceAccount
+# }
+
+# module "gke" {
+#   source         = "./module/gke"
+#   zone           = var.zone
+#   project_id     = var.project_id
+#   cluster_name   = var.cluster_name
+#   node_pool_name = var.node_pool_name
+#   depends_on = [ module.network ]
+# }
+
+
+
+
+# module "subnet" {
+#   source = "./module/subnet"
+#   network_name = var.network_name
+#   ip_cidr_range = var.ip_cidr_range
+#   region = var.region
+#   depends_on = [ module.vpc ]
+# }
+
+# module "router" {
+#   source = "./module/router"
+#   region = var.region
+# }
+
+# module "nat" {
+#   source = "./module/nat"
+#   region = var.region
+#   depends_on = [ module.router ]
+# }
+
+# module "Firewall" {
+#   source = "./module/firewall"
+#   project_id = var.project_id
+#   depends_on = [ 
+#     module.vpc,
+#     module.subnet,
+#     module.router,
+#     module.nat
+#   ]
+# }

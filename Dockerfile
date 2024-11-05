@@ -1,10 +1,10 @@
-FROM python:3.11-alpine
+FROM python:3.9-slim
 
 # Create and set the working directory
 WORKDIR /app
 
 # Copy only the requirements file first to leverage Docker caching
-COPY requirements.txt .
+COPY requirements.txt requirements.txt
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
